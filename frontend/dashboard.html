@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <meta name="description" content="Enterprise User Management Dashboard">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles/dashboard-style.css">
+</head>
+<body class="dashboard-page">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div class="header-brand">
+                <span class="user-role-badge" id="userRole">Administrator</span>
+            </div>
+            
+            <div class="header-actions">
+                <div class="user-info">
+                    <span id="userName">Loading...</span>
+                    <span class="user-email" id="userEmail">loading@company.com</span>
+                </div>
+                <div class="header-buttons">
+                    <button class="btn-secondary" id="refreshBtn" title="Refresh data">
+                        Refresh
+                    </button>
+                    <button class="btn-logout" id="logoutBtn">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="dashboard-container">
+            <!-- Main Content Area -->
+            <div class="main-content">
+                <!-- User Management Section -->
+                <section class="management-section">
+                    <div class="section-header">
+                        <h2>User Management</h2>
+                        <button class="btn-primary" id="addUserBtn">
+                            + Add New User
+                        </button>
+                    </div>
+
+                    <!-- Add User Modal -->
+                    <div id="addUserModal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Add New User</h3>
+                                <button class="modal-close" id="closeModal">&times;</button>
+                            </div>
+                            <form id="addUserForm" class="modal-form">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="newUserName">Full Name *</label>
+                                        <input type="text" id="newUserName" class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newUserEmail">Email *</label>
+                                        <input type="email" id="newUserEmail" class="form-input" required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="newUserEmployeeId">Employee ID *</label>
+                                        <input type="text" id="newUserEmployeeId" class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newUserDepartment">Department *</label>
+                                        <select id="newUserDepartment" class="form-input" required>
+                                            <option value="">Select Department</option>
+                                            <option value="hr">Human Resources</option>
+                                            <option value="it">IT Department</option>
+                                            <option value="finance">Finance</option>
+                                            <option value="sales">Sales</option>
+                                            <option value="marketing">Marketing</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="newUserRole">Role *</label>
+                                        <select id="newUserRole" class="form-input" required>
+                                            <option value="user">Regular User</option>
+                                            <option value="manager">Manager</option>
+                                            <option value="admin">Administrator</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newUserStatus">Status</label>
+                                        <select id="newUserStatus" class="form-input">
+                                            <option value="active">Active</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="inactive">Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- Поля для пароля -->
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="newUserPassword">Password</label>
+                                        <input type="password" id="newUserPassword" class="form-input" 
+                                               placeholder="Enter password (min 8 characters)">
+                                        <small class="form-help">Leave empty for auto-generated password</small>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newUserConfirmPassword">Confirm Password</label>
+                                        <input type="password" id="newUserConfirmPassword" class="form-input" 
+                                               placeholder="Confirm password">
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn-secondary" id="cancelAddUser">Cancel</button>
+                                    <button type="submit" class="btn-primary">Create User</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Edit User Modal -->
+                    <div id="editUserModal" class="modal">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Edit User</h3>
+                                <button class="modal-close" id="closeEditModal">&times;</button>
+                            </div>
+                            <form id="editUserForm" class="modal-form">
+                                <input type="hidden" id="editUserId">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editUserName">Full Name *</label>
+                                        <input type="text" id="editUserName" class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editUserEmail">Email *</label>
+                                        <input type="email" id="editUserEmail" class="form-input" required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editUserEmployeeId">Employee ID *</label>
+                                        <input type="text" id="editUserEmployeeId" class="form-input" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editUserDepartment">Department *</label>
+                                        <select id="editUserDepartment" class="form-input" required>
+                                            <option value="">Select Department</option>
+                                            <option value="hr">Human Resources</option>
+                                            <option value="it">IT Department</option>
+                                            <option value="finance">Finance</option>
+                                            <option value="sales">Sales</option>
+                                            <option value="marketing">Marketing</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editUserRole">Role *</label>
+                                        <select id="editUserRole" class="form-input" required>
+                                            <option value="user">Regular User</option>
+                                            <option value="manager">Manager</option>
+                                            <option value="admin">Administrator</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editUserStatus">Status</label>
+                                        <select id="editUserStatus" class="form-input">
+                                            <option value="active">Active</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="inactive">Inactive</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- Поля для смены пароля -->
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editUserPassword">New Password</label>
+                                        <input type="password" id="editUserPassword" class="form-input" 
+                                               placeholder="Enter new password (min 8 characters)">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editUserConfirmPassword">Confirm New Password</label>
+                                        <input type="password" id="editUserConfirmPassword" class="form-input" 
+                                               placeholder="Confirm new password">
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn-secondary" id="cancelEditUser">Cancel</button>
+                                    <button type="submit" class="btn-primary">Update User</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="users-table-container">
+                        <div class="table-actions">
+                            <div class="search-box">
+                                <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
+                            </div>
+                            <div class="filter-options">
+                                <select id="departmentFilter" class="filter-select">
+                                    <option value="">All Departments</option>
+                                    <option value="hr">HR</option>
+                                    <option value="it">IT</option>
+                                    <option value="finance">Finance</option>
+                                    <option value="sales">Sales</option>
+                                    <option value="marketing">Marketing</option>
+                                </select>
+                                <select id="roleFilter" class="filter-select">
+                                    <option value="">All Roles</option>
+                                    <option value="user">User</option>
+                                    <option value="manager">Manager</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                                <select id="statusFilter" class="filter-select">
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="table-wrapper">
+                            <table class="users-table">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Employee ID</th>
+                                        <th>Department</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Last Login</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <!-- Users will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-footer">
+                            <div class="pagination-info">
+                                Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> users
+                            </div>
+                            <div class="pagination-controls">
+                                <button id="prevPage" class="pagination-btn" disabled>← Previous</button>
+                                <span class="page-info">Page <span id="currentPage">1</span></span>
+                                <button id="nextPage" class="pagination-btn" disabled>Next →</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Statistics Sidebar -->
+            <aside class="stats-sidebar">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3 id="totalUsers">0</h3>
+                            <p>Total Users</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3 id="activeUsers">0</h3>
+                            <p>Active Users</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3 id="newUsers">0</h3>
+                            <p>Pending Approval</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3 id="adminCount">0</h3>
+                            <p>Administrators</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Notifications container -->
+    <div id="notificationsContainer"></div>
+
+    <!-- Подключаем JavaScript -->
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorization</title>
+    <meta name="description" content="Enterprise Authentication System">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles/auth-style.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <div class="company-logo">
+                <h1>Authorization</h1>
+            </div>
+        </div>
+
+        <div class="auth-card">
+            <!-- Форма входа -->
+            <form id="loginForm" class="auth-form active">
+                <h2>Welcome Back</h2>
+                <p class="auth-subtitle">Sign in to your account</p>
+                
+                <div class="form-group">
+                    <label for="loginEmail" class="input-label">Company Email</label>
+                    <input 
+                        type="email" 
+                        id="loginEmail" 
+                        class="form-input"
+                        placeholder="your.email@company.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword" class="input-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="loginPassword" 
+                        class="form-input"
+                        placeholder="Enter your password"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="auth-button">
+                    Sign In
+                </button>
+
+                <div class="auth-switch">
+                    Don't have an account? <a href="#" id="showRegister">Request access</a>
+                </div>
+            </form>
+
+            <!-- Форма регистрации/запроса доступа -->
+            <form id="registerForm" class="auth-form">
+                <h2>Request Access</h2>
+                <p class="auth-subtitle">Request access to company system</p>
+                
+                <div class="form-group">
+                    <label for="regName" class="input-label">Full Name</label>
+                    <input 
+                        type="text" 
+                        id="regName" 
+                        class="form-input"
+                        placeholder="Enter your full name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail" class="input-label">Company Email</label>
+                    <input 
+                        type="email" 
+                        id="regEmail" 
+                        class="form-input"
+                        placeholder="your.email@company.com"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="regDepartment" class="input-label">Department</label>
+                    <select id="regDepartment" class="form-input" required>
+                        <option value="">Select Department</option>
+                        <option value="hr">Human Resources</option>
+                        <option value="it">IT Department</option>
+                        <option value="finance">Finance</option>
+                        <option value="sales">Sales</option>
+                        <option value="marketing">Marketing</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmployeeId" class="input-label">Employee ID</label>
+                    <input 
+                        type="text" 
+                        id="regEmployeeId" 
+                        class="form-input"
+                        placeholder="Enter your employee ID"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="regPassword" class="input-label">Create Password</label>
+                    <input 
+                        type="password" 
+                        id="regPassword" 
+                        class="form-input"
+                        placeholder="Create a password"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="regConfirmPassword" class="input-label">Confirm Password</label>
+                    <input 
+                        type="password" 
+                        id="regConfirmPassword" 
+                        class="form-input"
+                        placeholder="Confirm your password"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="auth-button">
+                    Request Access
+                </button>
+
+                <div class="auth-switch">
+                    Already have an account? <a href="#" id="showLogin">Sign in</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Подключаем JavaScript -->
+    <script src="js/auth.js"></script>
+</body>
+</html>
