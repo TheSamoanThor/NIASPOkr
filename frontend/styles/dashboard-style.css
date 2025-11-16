@@ -310,7 +310,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 25px 30px;
+    padding: 15px 30px;
     border-bottom: 1px solid #eee;
 }
 
@@ -346,7 +346,7 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 15px;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
 }
 
 .form-group {
@@ -403,7 +403,6 @@ body {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
-    margin-top: 25px;
     padding-top: 20px;
     border-top: 1px solid #eee;
 }

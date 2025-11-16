@@ -6,7 +6,5 @@ echo Reload the pages when everything is built...
 ::start chrome http://localhost:80
 ::start msedge http://localhost:80
 echo [3/3] Building the app and starting the images...
-::docker-compose build --no-cache
-::docker-compose up
 docker compose up --build
 pause

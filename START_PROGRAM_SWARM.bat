@@ -158,14 +158,12 @@ echo.
 set /p "cmd=Command [%STACK_NAME%]> "
 if "!cmd!"=="" goto interactive
 
-:: Удаляем лишние пробелы и переводим в нижний регистр для обработки
 set "cmd=!cmd: =!"
 set "clean_cmd=!cmd!"
 if not "!clean_cmd!"=="" (
     set "clean_cmd=!clean_cmd:~0,1!"
 )
 
-:: Обработка команд
 if /i "!cmd!"=="exit" goto cmd_exit
 if /i "!cmd!"=="help" goto cmd_help
 if /i "!cmd!"=="status" goto cmd_status
@@ -175,7 +173,6 @@ if /i "!cmd!"=="remove" goto cmd_remove
 if /i "!cmd!"=="cleanup" goto cmd_cleanup
 if /i "!cmd!"=="registry" goto cmd_registry
 
-:: Если команда не распознана
 echo.
 echo Unknown command: "!cmd!"
 echo Type 'help' for available commands

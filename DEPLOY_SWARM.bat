@@ -80,11 +80,11 @@ if errorlevel 1 (
 )
 
 echo Creating overlay network...
-docker network create -d overlay --attachable app-network 2>nul && echo ✓ Network created || echo ℹ Network already exists
+docker network create -d overlay --attachable app-network 2>nul && echo Network created || echo Network already exists
 
 echo Creating volumes...
-docker volume create postgres_data 2>nul && echo ✓ Volume created || echo ℹ Volume already exists
-docker volume create redis_data 2>nul && echo ✓ Volume created || echo ℹ Volume already exists
+docker volume create postgres_data 2>nul && echo Volume created || echo Volume already exists
+docker volume create redis_data 2>nul && echo Volume created || echo Volume already exists
 
 echo [6/7] - Deploying stack '%STACK_NAME%'...
 docker stack deploy -c docker-compose.swarm.yml %STACK_NAME%
