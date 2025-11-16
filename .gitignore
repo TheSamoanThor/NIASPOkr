@@ -1,0 +1,9 @@
+# Игнорировать файлы окружения
+.env
+
+# Игнорировать потенциально опасные скрипты
+Copy_Files_POSSIBLE_DANGER_RUN_ONLY_HERE.py
+
+# Игнорировать batch-файлы
+push-to-registry.bat
+start_copy.bat
