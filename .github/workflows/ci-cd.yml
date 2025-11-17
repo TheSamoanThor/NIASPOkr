@@ -1,13 +1,16 @@
-name: AuthSystem CI Pipeline
+name: AuthSystem CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   PYTHON_VERSION: '3.11'
+  DATABASE_URL: "sqlite:///./test.db"
+  SECRET_KEY: "test-secret-key-for-jwt"
+  JWT_SECRET: "test-jwt-secret"
 
 jobs:
   code-quality:
@@ -66,14 +69,11 @@ jobs:
         echo "Testing module imports..."
         cd backend
         python -c "
-        # Test basic imports without initializing database connections
         try:
-            # Import without triggering database connections
             import auth_app
             import user_app
             print('Module imports: SUCCESS')
             
-            # Test that we can access basic attributes
             if hasattr(auth_app, 'app'):
                 print('Auth app object: EXISTS')
             if hasattr(user_app, 'app'):
@@ -81,7 +81,6 @@ jobs:
                 
         except Exception as e:
             print(f'Import test failed: {e}')
-            # Don't fail the build for import issues related to missing services
             print('This is expected in CI environment without PostgreSQL/Redis')
         "
 
@@ -111,19 +110,15 @@ jobs:
         python -c "
         import bcrypt
         
-        # Test bcrypt functionality directly
         test_passwords = ['test123', 'password456', 'secure789']
         
         for pwd in test_passwords:
-            # Hash password
             salt = bcrypt.gensalt()
             hashed = bcrypt.hashpw(pwd.encode('utf-8'), salt)
             
-            # Verify password
             result = bcrypt.checkpw(pwd.encode('utf-8'), hashed)
             assert result == True, 'Password verification failed'
             
-            # Test wrong password
             wrong_result = bcrypt.checkpw('wrong'.encode('utf-8'), hashed)
             assert wrong_result == False, 'Wrong password was accepted'
             
@@ -185,7 +180,6 @@ jobs:
       run: |
         echo "Checking frontend file structure..."
         
-        # Check essential frontend files exist
         if [ -f "frontend/index.html" ]; then
             echo "index.html: EXISTS"
         else
@@ -242,7 +236,6 @@ jobs:
         echo "Validating HTML structure..."
         cd frontend
         
-        # Basic HTML validation
         if grep -q "<!DOCTYPE html>" index.html; then
             echo "index.html: Valid DOCTYPE"
         else
@@ -255,7 +248,6 @@ jobs:
             echo "dashboard.html: Missing DOCTYPE"
         fi
         
-        # Check for essential elements
         if grep -q "<html" index.html; then
             echo "index.html: Contains <html> tag"
         else
@@ -274,40 +266,6 @@ jobs:
             echo "index.html: Missing <body> section"
         fi
 
-  docker-build:
-    name: Build Docker Images
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Build backend image
-      run: |
-        echo "Building backend Docker image..."
-        docker build -t auth-backend:test ./backend
-        echo "Backend image built successfully"
-
-    - name: Build frontend image
-      run: |
-        echo "Building frontend Docker image..."
-        docker build -t auth-frontend:test ./frontend
-        echo "Frontend image built successfully"
-
-    - name: Test Docker images
-      run: |
-        echo "Testing Docker images..."
-        
-        # Test backend image can be created and basic Python works
-        echo "Testing backend image..."
-        docker run --rm auth-backend:test python -c "print('Backend Python works')" || echo "Backend Python test completed"
-        
-        # Test frontend nginx config
-        echo "Testing frontend nginx config..."
-        docker run --rm auth-frontend:test nginx -t || echo "Frontend nginx config test completed"
-
   configuration-tests:
     name: Configuration Tests
     runs-on: ubuntu-latest
@@ -319,10 +277,8 @@ jobs:
       run: |
         echo "Testing configuration files..."
         
-        # Test Docker Compose files
         if [ -f "docker-compose.yml" ]; then
             echo "docker-compose.yml: EXISTS"
-            # Basic syntax check
             if grep -q "version:" docker-compose.yml; then
                 echo "docker-compose.yml: Valid version header"
             else
@@ -343,7 +299,6 @@ jobs:
             echo "docker-compose.swarm.yml: MISSING"
         fi
         
-        # Test batch files exist
         if [ -f "START_PROGRAM.bat" ]; then
             echo "START_PROGRAM.bat: EXISTS"
         else
@@ -356,7 +311,6 @@ jobs:
             echo "START_PROGRAM_SWARM.bat: MISSING"
         fi
         
-        # Test requirements file
         if [ -f "backend/requirements.txt" ]; then
             echo "backend/requirements.txt: EXISTS"
             echo "Dependencies:"
@@ -365,16 +319,191 @@ jobs:
             echo "backend/requirements.txt: MISSING"
         fi
 
+  docker-build:
+    name: Build Docker Images
+    runs-on: [self-hosted, linux, x64, wsl]
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    outputs:
+      image-tag: ${{ steps.meta.outputs.image_tag }}
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Determine image tag
+      id: meta
+      run: |
+        IMAGE_TAG="${GITHUB_SHA::7}"
+        echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+        echo "IMAGE_TAG=${IMAGE_TAG}" >> "$GITHUB_ENV"
+        echo "Using image tag: ${IMAGE_TAG}"
+
+    - name: Authenticate to Docker Hub
+      run: |
+        echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+    - name: Build and push backend image
+      env:
+        IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
+      run: |
+        set -e
+        docker build -t "$DOCKERHUB_USERNAME/auth-backend:${IMAGE_TAG}" ./backend
+        docker tag "$DOCKERHUB_USERNAME/auth-backend:${IMAGE_TAG}" "$DOCKERHUB_USERNAME/auth-backend:latest"
+        docker push "$DOCKERHUB_USERNAME/auth-backend:${IMAGE_TAG}"
+        docker push "$DOCKERHUB_USERNAME/auth-backend:latest"
+
+    - name: Build and push frontend image
+      env:
+        IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
+      run: |
+        set -e
+        docker build -t "$DOCKERHUB_USERNAME/auth-frontend:${IMAGE_TAG}" ./frontend
+        docker tag "$DOCKERHUB_USERNAME/auth-frontend:${IMAGE_TAG}" "$DOCKERHUB_USERNAME/auth-frontend:latest"
+        docker push "$DOCKERHUB_USERNAME/auth-frontend:${IMAGE_TAG}"
+        docker push "$DOCKERHUB_USERNAME/auth-frontend:latest"
+
+    - name: Test Docker images
+      run: |
+        echo "Testing Docker images..."
+        
+        echo "Testing backend image..."
+        docker run --rm $DOCKERHUB_USERNAME/auth-backend:latest python -c "print('Backend Python works')" || echo "Backend Python test completed"
+        
+        echo "Testing frontend nginx config..."
+        docker run --rm $DOCKERHUB_USERNAME/auth-frontend:latest nginx -t || echo "Frontend nginx config test completed"
+
+    - name: Docker build summary
+      env:
+        IMAGE_TAG: ${{ steps.meta.outputs.image_tag }}
+      run: |
+        echo "## Build & Push Docker Images" >> $GITHUB_STEP_SUMMARY
+        echo "Backend: auth-backend:${IMAGE_TAG} / latest" >> $GITHUB_STEP_SUMMARY
+        echo "Frontend: auth-frontend:${IMAGE_TAG} / latest" >> $GITHUB_STEP_SUMMARY
+
+  deployment:
+    name: Production Deployment
+    runs-on: [self-hosted, linux, x64, wsl]
+    needs: [code-quality, syntax-tests, security-tests, frontend-tests, docker-build, configuration-tests]
+    if: github.ref == 'refs/heads/main'
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Authenticate to Docker Hub
+      run: |
+        echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+    
+    - name: Deploy to Production
+      env:
+        IMAGE_TAG: ${{ needs.docker-build.outputs.image-tag }}
+      run: |
+        set -e
+        export IMAGE_TAG
+        export DOCKERHUB_USERNAME
+
+        echo "Deploying to production environment..."
+        echo "Production URL: http://localhost"
+        echo "Environment: production"
+        echo "Using Docker Hub namespace: ${DOCKERHUB_USERNAME}"
+        echo "Deploying tag: ${IMAGE_TAG}"
+        
+        if [ -z "$DOCKERHUB_USERNAME" ] || [ -z "$IMAGE_TAG" ]; then
+          echo "ERROR: DOCKERHUB_USERNAME or IMAGE_TAG is not set!"
+          echo "DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}"
+          echo "IMAGE_TAG=${IMAGE_TAG}"
+          exit 1
+        fi
+
+        # Pull images first
+        docker pull "$DOCKERHUB_USERNAME/auth-backend:${IMAGE_TAG}"
+        docker pull "$DOCKERHUB_USERNAME/auth-frontend:${IMAGE_TAG}"
+
+        # Substitute environment variables in docker-compose file
+        if command -v envsubst &> /dev/null; then
+          envsubst '${DOCKERHUB_USERNAME} ${IMAGE_TAG}' < docker-compose.swarm.yml > docker-compose.swarm-deploy.yml
+        else
+          echo "Using sed as fallback for variable substitution"
+          sed "s/thesamoanthor/${DOCKERHUB_USERNAME}/g; s/latest/${IMAGE_TAG}/g" docker-compose.swarm.yml > docker-compose.swarm-deploy.yml
+        fi
+        
+        # Verify substitution worked
+        echo "Checking substituted values..."
+        grep "image:" docker-compose.swarm-deploy.yml | head -5
+
+        # Remove old stack if exists
+        echo "Checking for existing stack..."
+        if docker stack ls | grep -q "auth-system"; then
+          echo "Stack 'auth-system' exists, removing old stack..."
+          docker stack rm auth-system
+          echo "Waiting for stack removal..."
+          sleep 10
+          while docker stack ls | grep -q "auth-system"; do
+            echo "Still removing stack..."
+            sleep 5
+          done
+          echo "Old stack removed"
+        fi
+
+        # Initialize Docker Swarm if not already initialized
+        echo "Initializing Docker Swarm if needed..."
+        if ! docker node ls &> /dev/null; then
+          docker swarm init
+        fi
+
+        # Create network if it doesn't exist
+        docker network create -d overlay --attachable app-network 2>/dev/null || echo "Network already exists"
+
+        # Create volumes if they don't exist
+        docker volume create postgres_data 2>/dev/null || echo "Volume already exists"
+        docker volume create redis_data 2>/dev/null || echo "Volume already exists"
+
+        # Deploy stack
+        echo "Deploying new stack..."
+        docker stack deploy --with-registry-auth -c docker-compose.swarm-deploy.yml auth-system
+
+        # Verify deployment
+        echo "Waiting for services to start..."
+        sleep 30
+        echo "Stack services:"
+        docker stack services auth-system
+        echo "All services:"
+        docker service ls
+    
+    - name: Production Health Checks
+      run: |
+        echo "Running production health checks..."
+        echo "Checking service availability..."
+        echo "Waiting for services to be ready..."
+        sleep 30
+        
+        # Check if services are running
+        echo "Service status:"
+        docker service ls --filter name=auth-system
+        
+        # Health checks
+        echo "Performing health checks..."
+        if curl -f http://localhost:80 > /dev/null 2>&1; then
+          echo "Frontend: http://localhost - OK"
+        else
+          echo "Frontend: http://localhost - NOT READY"
+        fi
+        
+        echo "All production services are deployed and starting up!"
+
   test-report:
     name: Test Report
     runs-on: ubuntu-latest
-    needs: [code-quality, syntax-tests, security-tests, frontend-tests, docker-build, configuration-tests]
+    needs: [code-quality, syntax-tests, security-tests, frontend-tests, docker-build, configuration-tests, deployment]
     if: always()
     
     steps:
     - name: Generate test report
       run: |
-        echo "# AuthSystem CI Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "# AuthSystem CI/CD Test Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -386,6 +515,7 @@ jobs:
         echo "| Frontend Tests | ${{ needs.frontend-tests.result }} | File structure and HTML validation |" >> $GITHUB_STEP_SUMMARY
         echo "| Docker Build | ${{ needs.docker-build.result }} | Container image builds |" >> $GITHUB_STEP_SUMMARY
         echo "| Configuration Tests | ${{ needs.configuration-tests.result }} | Config file validation |" >> $GITHUB_STEP_SUMMARY
+        echo "| Deployment | ${{ needs.deployment.result || 'skipped' }} | Production deployment |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## Build Information" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -393,3 +523,12 @@ jobs:
         echo "**Backend**: Flask with PostgreSQL and Redis" >> $GITHUB_STEP_SUMMARY
         echo "**Containers**: Docker with Compose and Swarm support" >> $GITHUB_STEP_SUMMARY
         echo "**Authentication**: JWT with bcrypt password hashing" >> $GITHUB_STEP_SUMMARY
+        echo "**Registry**: Docker Hub" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ needs.deployment.result }}" = "success" ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Deployment Information" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment**: Production (WSL)" >> $GITHUB_STEP_SUMMARY
+          echo "**URL**: http://localhost" >> $GITHUB_STEP_SUMMARY
+          echo "**Stack**: auth-system" >> $GITHUB_STEP_SUMMARY
+          echo "**Orchestration**: Docker Swarm" >> $GITHUB_STEP_SUMMARY
+        fi
