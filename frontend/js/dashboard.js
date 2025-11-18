@@ -1,3 +1,4 @@
+// управление пользователями
 class Dashboard {
     constructor() {
         this.API_BASE_URL = '/api';

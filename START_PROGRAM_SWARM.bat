@@ -5,6 +5,7 @@ set REGISTRY=thesamoanthor
 set VERSION=latest
 set STACK_NAME=auth-system
 
+echo oh, sh..., here we go again...
 echo [1/8] - Checking Docker and Docker Swarm...
 docker --version >nul 2>&1
 if errorlevel 1 (

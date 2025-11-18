@@ -400,7 +400,7 @@ def index():
     return jsonify({
         'message': 'User Service - Company Auth System API',
         'service': 'user_management',
-        'version': '2.0.0'
+        'version': '1.0.0'
     })
 
 def init_db():

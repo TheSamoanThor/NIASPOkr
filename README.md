@@ -22,7 +22,7 @@ docker compose version</code></pre>
 <h3>Особенности для Windows:</h3>
 
 <ul>
-<li>Docker Desktop с включенной опцией WSL 2</li>
+<li>Docker Desktop с включенной опцией WSL 2 (по идее, Docker сам включит эту опцию)</li>
 <li>WSL 2 (Windows Subsystem for Linux) для оптимальной работы</li>
 <li>Убедитесь, что в Docker Desktop включены</li>
 </ul>
@@ -179,7 +179,7 @@ docker compose version</code></pre>
 <h3>Windows considerations:</h3>
 
 <ul>
-<li>Docker Desktop with WSL 2 enabled</li>
+<li>Docker Desktop with WSL 2 enabled (most probably, Docker enables it automatically)</li>
 <li>WSL 2 (Windows Subsystem for Linux) for optimal performance</li>
 <li>Make sure Docker Desktop is enabled</li>
 </ul>

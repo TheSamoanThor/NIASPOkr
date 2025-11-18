@@ -316,7 +316,7 @@ def init_db():
                         db.session.add(guest_user)
                         
                         db.session.commit()
-                        print("Default admin user created: admin@company.com / admin123!")
+                        print("Default admin user created: admin@company.com")
                         print("Default guest user created: guest@company.com / guest123!")
                     else:
                         print("Database tables created successfully")

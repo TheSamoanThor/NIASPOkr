@@ -5,6 +5,7 @@ set REGISTRY=thesamoanthor
 set VERSION=latest
 set STACK_NAME=auth-system
 
+echo oh, sh..., here we go again...
 echo ========================================
 echo DOCKER SWARM DEPLOYMENT
 echo ========================================

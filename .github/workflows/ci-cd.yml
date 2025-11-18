@@ -1,4 +1,4 @@
-name: AuthSystem CI/CD Pipeline
+name: AuthSystem CI/CD Test Pipeline
 
 on:
   push:

@@ -25,6 +25,7 @@ services:
       - auth_service
       - user_service
 
+  # один образ для бека, но разные контейнеры
   auth_service:
     image: thesamoanthor/auth-backend:latest
     environment:

@@ -1,4 +1,5 @@
-class AuthSystem {
+// авторизация
+class AuthSystem { 
     constructor() {
         this.API_BASE_URL = '/api';
         this.currentUser = null;

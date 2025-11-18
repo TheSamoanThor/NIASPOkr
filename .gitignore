@@ -7,3 +7,9 @@ Copy_Files_POSSIBLE_DANGER_RUN_ONLY_HERE.py
 # Игнорировать batch-файлы
 push-to-registry.bat
 start_copy.bat
+
+# игнорировать файлы локального репозитория (на всякий случай :))
+.git
+
+# Игнорировать бекапы проекта на локальной машине
+Project_Files.txt
